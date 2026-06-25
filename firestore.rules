@@ -1,0 +1,160 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper Primitives
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isUserWithRole(role) {
+      return isSignedIn() && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role;
+    }
+
+    function isAdmin() {
+      return isUserWithRole('admin');
+    }
+
+    function isEducateur() {
+      return isUserWithRole('educateur');
+    }
+
+    function isSecretaire() {
+      return isUserWithRole('secretaire');
+    }
+
+    // Entity Schema Validation Blueprints
+    function isValidConfig(data) {
+      return data.schoolName is string && data.schoolName.size() <= 150
+        && data.registrationFee is int
+        && data.monthlyFee is int;
+    }
+
+    function isValidNews(data) {
+      return data.id is string && data.title is string && data.content is string
+        && data.title.size() <= 200 && data.content.size() <= 5000;
+    }
+
+    function isValidNote(data) {
+      return data.id is string && data.title is string && data.content is string
+        && data.title.size() <= 200 && data.content.size() <= 2000;
+    }
+
+    function isValidStudent(data) {
+      return data.id is string && data.firstName is string && data.lastName is string
+        && data.firstName.size() <= 100 && data.lastName.size() <= 100;
+    }
+
+    function isValidMessage(data) {
+      return data.id is string && data.name is string && data.email is string
+        && data.subject is string && data.message is string
+        && data.name.size() <= 100 && data.message.size() <= 3000;
+    }
+
+    function isValidPayment(data) {
+      return data.id is string && data.studentName is string && data.amount is int
+        && data.studentName.size() <= 150;
+    }
+
+    function isValidEvent(data) {
+      return data.id is string && data.title is string && data.category is string
+        && data.title.size() <= 200;
+    }
+
+    function isValidUser(data) {
+      return data.id is string && data.username is string && data.fullName is string
+        && data.role in ['admin', 'secretaire', 'educateur']
+        && data.username.size() <= 50 && data.fullName.size() <= 100;
+    }
+
+    function isValidReport(data) {
+      return data.id is string && data.year is string && data.type in ['mensuel', 'annuel']
+        && data.totalIncome is int && data.totalExpense is int;
+    }
+
+    function isValidPhoto(data) {
+      return data.id is string && data.title is string && data.category is string
+        && data.url is string && data.title.size() <= 200 && data.url.size() <= 1000;
+    }
+
+    // Collection Level Restrictions
+
+    // App Dynamic configuration settings
+    match /config/general {
+      allow read: if true;
+      allow write: if isAdmin() && isValidConfig(request.resource.data);
+    }
+
+    // Public Dashboard News
+    match /news/{newsId} {
+      allow read: if true;
+      allow create, update: if (isAdmin() || isEducateur()) && isValidId(newsId) && isValidNews(request.resource.data);
+      allow delete: if isAdmin() || isEducateur();
+    }
+
+    // Information Desk Notes
+    match /notes/{noteId} {
+      allow read: if true;
+      allow create, update: if (isAdmin() || isEducateur()) && isValidId(noteId) && isValidNote(request.resource.data);
+      allow delete: if isAdmin() || isEducateur();
+    }
+
+    // Registration of students (Allows public pre-enrollment submissions)
+    match /students/{studentId} {
+      allow read: if isAdmin() || isSecretaire();
+      allow create: if isValidId(studentId) && isValidStudent(request.resource.data);
+      allow update: if (isAdmin() || isSecretaire()) && isValidId(studentId) && isValidStudent(request.resource.data);
+      allow delete: if isAdmin() || isSecretaire();
+    }
+
+    // Direct parent messages (allow public create)
+    match /messages/{messageId} {
+      allow read: if isAdmin() || isSecretaire();
+      allow create: if isValidId(messageId) && isValidMessage(request.resource.data);
+      allow update, delete: if isAdmin() || isSecretaire();
+    }
+
+    // Logged ledger payments
+    match /payments/{paymentId} {
+      allow read: if isAdmin() || isSecretaire();
+      allow create, update: if (isAdmin() || isSecretaire()) && isValidId(paymentId) && isValidPayment(request.resource.data);
+      allow delete: if isAdmin() || isSecretaire();
+    }
+
+    // School Events
+    match /events/{eventId} {
+      allow read: if true;
+      allow create, update: if (isAdmin() || isEducateur()) && isValidId(eventId) && isValidEvent(request.resource.data);
+      allow delete: if isAdmin() || isEducateur();
+    }
+
+    // User consoles/credentials
+    match /users/{userId} {
+      allow read: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow create, update: if isAdmin() && isValidId(userId) && isValidUser(request.resource.data);
+      allow delete: if isAdmin() && userId != 'usr_admin';
+    }
+
+    // Sensitive accounting reports
+    match /reports/{reportId} {
+      allow read, write: if isAdmin() && isValidId(reportId) && (request.method == 'delete' || isValidReport(request.resource.data));
+    }
+
+    // Gallery Photos
+    match /gallery/{photoId} {
+      allow read: if true;
+      allow create, update: if isAdmin() && isValidId(photoId) && isValidPhoto(request.resource.data);
+      allow delete: if isAdmin();
+    }
+  }
+}

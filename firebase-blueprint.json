@@ -1,0 +1,216 @@
+{
+  "entities": {
+    "AppConfig": {
+      "title": "AppConfig",
+      "description": "General application settings for the school",
+      "type": "object",
+      "properties": {
+        "schoolName": { "type": "string" },
+        "homeTitle": { "type": "string" },
+        "homeSubtitle": { "type": "string" },
+        "welcomeMessage": { "type": "string" },
+        "historyText": { "type": "string" },
+        "address": { "type": "string" },
+        "phone": { "type": "string" },
+        "email": { "type": "string" },
+        "registrationFee": { "type": "number" },
+        "monthlyFee": { "type": "number" },
+        "bannerMessage": { "type": "string" },
+        "showBanner": { "type": "boolean" },
+        "registrationOpen": { "type": "boolean" }
+      },
+      "required": ["schoolName", "registrationFee", "monthlyFee"]
+    },
+    "Student": {
+      "title": "Student",
+      "description": "Record of a registered or pending student",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "firstName": { "type": "string" },
+        "lastName": { "type": "string" },
+        "dateOfBirth": { "type": "string" },
+        "className": { "type": "string" },
+        "gender": { "type": "string", "enum": ["M", "F"] },
+        "parentName": { "type": "string" },
+        "parentPhone": { "type": "string" },
+        "parentEmail": { "type": "string" },
+        "registrationType": { "type": "string", "enum": ["inscription", "reinscription"] },
+        "status": { "type": "string", "enum": ["en_attente", "approuvé", "rejeté"] },
+        "paymentStatus": { "type": "string", "enum": ["payé", "partiel", "non_payé"] },
+        "tuitionPaid": { "type": "number" },
+        "totalTuition": { "type": "number" },
+        "dateCreated": { "type": "string" },
+        "medicalInfo": { "type": "string" },
+        "previousSchool": { "type": "string" },
+        "photoUrl": { "type": "string" },
+        "academicYear": { "type": "string" }
+      },
+      "required": ["id", "firstName", "lastName", "className", "gender", "parentName", "parentPhone", "parentEmail", "registrationType", "status", "paymentStatus", "tuitionPaid", "totalTuition", "dateCreated"]
+    },
+    "NewsItem": {
+      "title": "NewsItem",
+      "description": "A news article or announcement published on the public billboard",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "date": { "type": "string" },
+        "category": { "type": "string", "enum": ["événement", "académique", "annonce", "sport"] },
+        "imageUrl": { "type": "string" },
+        "active": { "type": "boolean" }
+      },
+      "required": ["id", "title", "content", "date", "category", "active"]
+    },
+    "NoteItem": {
+      "title": "NoteItem",
+      "description": "An administrative note or safety directive for parents",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "date": { "type": "string" },
+        "targetAudience": { "type": "string" },
+        "critical": { "type": "boolean" }
+      },
+      "required": ["id", "title", "content", "date", "targetAudience", "critical"]
+    },
+    "ContactMessage": {
+      "title": "ContactMessage",
+      "description": "Contact form submissions received from visitors/parents",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "subject": { "type": "string" },
+        "message": { "type": "string" },
+        "dateReceived": { "type": "string" }
+      },
+      "required": ["id", "name", "email", "subject", "message", "dateReceived"]
+    },
+    "PaymentRecord": {
+      "title": "PaymentRecord",
+      "description": "Financial receipt details recorded in the ledger",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "studentId": { "type": "string" },
+        "studentName": { "type": "string" },
+        "studentClass": { "type": "string" },
+        "amount": { "type": "number" },
+        "purpose": { "type": "string" },
+        "paymentMethod": { "type": "string" },
+        "transactionId": { "type": "string" },
+        "date": { "type": "string" },
+        "status": { "type": "string", "enum": ["validé", "échec"] }
+      },
+      "required": ["id", "studentName", "amount", "purpose", "paymentMethod", "transactionId", "date", "status"]
+    },
+    "SchoolEvent": {
+      "title": "SchoolEvent",
+      "description": "Dynamic calendar event representing academic schedule",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "date": { "type": "string" },
+        "time": { "type": "string" },
+        "category": { "type": "string", "enum": ["vacances", "examens", "fete", "reunion", "autre"] },
+        "description": { "type": "string" },
+        "location": { "type": "string" }
+      },
+      "required": ["id", "title", "date", "category", "description"]
+    },
+    "User": {
+      "title": "User",
+      "description": "Administrator account metadata",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "username": { "type": "string" },
+        "password": { "type": "string" },
+        "fullName": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "secretaire", "educateur"] },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "username", "password", "fullName", "role", "createdAt"]
+    },
+    "FinancialReport": {
+      "title": "FinancialReport",
+      "description": "Periodical financial balance audit records",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "year": { "type": "string" },
+        "type": { "type": "string", "enum": ["mensuel", "annuel"] },
+        "period": { "type": "string" },
+        "totalIncome": { "type": "number" },
+        "totalExpense": { "type": "number" },
+        "netBalance": { "type": "number" },
+        "comments": { "type": "string" },
+        "recordedBy": { "type": "string" },
+        "dateCreated": { "type": "string" }
+      },
+      "required": ["id", "year", "type", "period", "totalIncome", "totalExpense", "netBalance", "recordedBy", "dateCreated"]
+    },
+    "GalleryPhoto": {
+      "title": "GalleryPhoto",
+      "description": "Images shared on the public school photo gallery",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "category": { "type": "string" },
+        "year": { "type": "string" },
+        "url": { "type": "string" },
+        "dateCreated": { "type": "string" }
+      },
+      "required": ["id", "title", "category", "year", "url"]
+    }
+  },
+  "firestore": {
+    "/config/general": {
+      "schema": "AppConfig",
+      "description": "Single record containing global school dynamic choices"
+    },
+    "/news/{newsId}": {
+      "schema": "NewsItem",
+      "description": "Collections of published public news"
+    },
+    "/notes/{noteId}": {
+      "schema": "NoteItem",
+      "description": "Information desk directives"
+    },
+    "/students/{studentId}": {
+      "schema": "Student",
+      "description": "Database of registered/pre-registered and pending academic students"
+    },
+    "/messages/{messageId}": {
+      "schema": "ContactMessage",
+      "description": "Inbound parent enquiry form records"
+    },
+    "/payments/{paymentId}": {
+      "schema": "PaymentRecord",
+      "description": "Accounting transaction entries logged"
+    },
+    "/events/{eventId}": {
+      "schema": "SchoolEvent",
+      "description": "Dynamic calendar sessions"
+    },
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Local console auth database entries for role based logic"
+    },
+    "/reports/{reportId}": {
+      "schema": "FinancialReport",
+      "description": "Saved audit reports for ledger balances"
+    },
+    "/gallery/{photoId}": {
+      "schema": "GalleryPhoto",
+      "description": "Public school gallery pictures list assets"
+    }
+  }
+}

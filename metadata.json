@@ -1,0 +1,8 @@
+{
+  "name": "Remix: Heritage Divin",
+  "description": "Portail web officiel de l\u0027école Héritage Divin (du pré-primaire jusqu\u0027à la 5ème). Suivi des élèves, inscriptions et réinscriptions en ligne, actualités, calendrier scolaire, paiement sécurisé des frais de scolarité, et espace administration.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
