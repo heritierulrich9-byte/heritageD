@@ -670,7 +670,14 @@ function saveDb(data: typeof initialDb) {
 }
 
 async function startServer() {
-  await loadFromFirestore();
+  // Load database from local cache/fallback first so server boots immediately
+  getDb();
+
+  // Run Firestore synchronization in the background without blocking the server startup
+  loadFromFirestore().catch((err) => {
+    console.error("Erreur de synchronisation initiale Firestore (arrière-plan) :", err);
+  });
+
   const app = express();
   app.use(express.json());
 
@@ -987,30 +994,36 @@ async function startServer() {
     const db = getDb();
     const { username, password } = req.body;
 
-    let foundUser;
-    if (username) {
-      foundUser = (db.users || []).find(
-        (u: any) => u.username.toLowerCase() === username.toLowerCase() && u.password === password
-      );
-    } else {
-      // Support password-only login for backward compatibility
-      foundUser = (db.users || []).find((u: any) => u.password === password);
+    if (!username) {
+      return res.status(400).json({ error: "L'identifiant est requis." });
+    }
+    if (!password) {
+      return res.status(400).json({ error: "Le mot de passe est requis." });
     }
 
-    if (foundUser) {
-      res.json({
-        success: true,
-        user: {
-          id: foundUser.id,
-          username: foundUser.username,
-          fullName: foundUser.fullName,
-          role: foundUser.role,
-          createdAt: foundUser.createdAt
-        }
-      });
-    } else {
-      res.status(401).json({ error: "Identifiant ou mot de passe incorrect." });
+    const usersList = db.users || [];
+    const matchedUser = usersList.find(
+      (u: any) => u && typeof u.username === "string" && u.username.toLowerCase() === username.toLowerCase()
+    );
+
+    if (!matchedUser) {
+      return res.status(401).json({ error: "Identifiant incorrect. Cet utilisateur n'existe pas." });
     }
+
+    if (matchedUser.password !== password) {
+      return res.status(401).json({ error: "Mot de passe incorrect. Veuillez réessayer." });
+    }
+
+    res.json({
+      success: true,
+      user: {
+        id: matchedUser.id,
+        username: matchedUser.username,
+        fullName: matchedUser.fullName,
+        role: matchedUser.role,
+        createdAt: matchedUser.createdAt
+      }
+    });
   });
 
   app.get("/api/users", (req, res) => {
