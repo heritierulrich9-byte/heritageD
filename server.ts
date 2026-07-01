@@ -989,31 +989,6 @@ async function startServer() {
     }
   });
 
-  // 8. Multi-level Users Management (Gestion des Utilisateurs multi-niveaux)
-  app.post("/api/login", (req, res) => {
-    const db = getDb();
-    const { username, password } = req.body;
-
-    if (!username) {
-      return res.status(400).json({ error: "L'identifiant est requis." });
-    }
-    if (!password) {
-      return res.status(400).json({ error: "Le mot de passe est requis." });
-    }
-
-    const usersList = db.users || [];
-    const matchedUser = usersList.find(
-      (u: any) => u && typeof u.username === "string" && u.username.toLowerCase() === username.toLowerCase()
-    );
-
-    if (!matchedUser) {
-      return res.status(401).json({ error: "Identifiant incorrect. Cet utilisateur n'existe pas." });
-    }
-
-    if (matchedUser.password !== password) {
-      return res.status(401).json({ error: "Mot de passe incorrect. Veuillez réessayer." });
-    }
-
     res.json({
       success: true,
       user: {
